@@ -1,0 +1,1 @@
+gcc .\backend.c .\main.c .\interactive_mode.c -o rezervare.exe
