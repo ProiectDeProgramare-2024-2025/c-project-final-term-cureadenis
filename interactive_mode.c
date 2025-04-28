@@ -58,7 +58,8 @@ void show_reservations()
     int nr_mase = get_table_count();
     for (int i = 0; i < nr_mase; i++)
     {
-        printf("Masa %d cu nr locuri %d\n", ptrtables[i].id, ptrtables[i].seats);
+        if (ptrtables[i].is_reserved == 1)
+            printf("Masa %d rezervata de %s pe data de %.10s\n", ptrtables[i].id, ptrtables[i].reservation_name, ptrtables[i].reservation_date);
     }
 
     printf("\n0: Meniu principal\n");
