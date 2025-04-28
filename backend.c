@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define HEADER "# nr masa; nr locuri; este rezervata (0 sau 1); nume rezerare (daca este rezervata); data rezervare (daca este rezervata)\n"
+
 /*
     TODO:
     - functie care verifica daca exista deja
@@ -28,24 +30,19 @@ struct table
 
 struct table *ptrtables;
 
-int line_count = -1;
-
 int get_table_count()
 {
-    if (line_count == -1)
+    FILE *dbptr;
+    int line_count = -1; // ultima linie este goala din db.txt si nu o punem la numar
+    char ch;
+    dbptr = fopen("db.txt", "r");
+    while ((ch = fgetc(dbptr)) != EOF)
     {
-        FILE *dbptr;
-        line_count = 0;
-        char ch;
-        dbptr = fopen("db.txt", "r");
-        while ((ch = fgetc(dbptr)) != EOF) // trebuie verificata toata linia ca sa nu fie goala
-        {
-            if (ch == '\n')
-                line_count++;
-        }
-
-        fclose(dbptr);
+        if (ch == '\n')
+            line_count++;
     }
+
+    fclose(dbptr);
 
     return line_count;
 }
@@ -56,9 +53,9 @@ void create_db_if_none()
     dbptr = fopen("db.txt", "r");
     if (dbptr == NULL)
     {
-        // file doesn't exist, creating...
+        // fisierul nu exista, trebuie creat
         dbptr = fopen("db.txt", "w");
-        fprintf(dbptr, "# nr masa; nr locuri; este rezervata (0 sau 1); nume rezerare (daca este 1); data rezervare (daca este 1)\n");
+        fprintf(dbptr, HEADER);
     }
     fclose(dbptr);
 }
@@ -72,22 +69,25 @@ void save_tables(struct table *ptrtables, int count)
         return;
     }
 
-    fprintf(dbptr, "# nr masa; nr locuri; este rezervata (0 sau 1); nume rezerare (daca este 1); data rezervare (daca este 1)\n");
-    for (int i = 0; i < count - 1; i++)
+    fprintf(dbptr, HEADER);
+    for (int i = 0; i < count; i++)
     {
-        fprintf(dbptr, "%d;%d;%d",
-                ptrtables[i].id,
-                ptrtables[i].seats,
-                ptrtables[i].is_reserved);
-
-        if (ptrtables[i].is_reserved == 1)
+        if (ptrtables[i].id != -1)
         {
-            fprintf(dbptr, ";%s;%.10s",
-                    ptrtables[i].reservation_name,
-                    ptrtables[i].reservation_date);
-        }
+            fprintf(dbptr, "%d;%d;%d",
+                    ptrtables[i].id,
+                    ptrtables[i].seats,
+                    ptrtables[i].is_reserved);
 
-        fprintf(dbptr, "\n");
+            if (ptrtables[i].is_reserved == 1)
+            {
+                fprintf(dbptr, ";%s;%.10s",
+                        ptrtables[i].reservation_name,
+                        ptrtables[i].reservation_date);
+            }
+
+            fprintf(dbptr, "\n");
+        }
     }
 
     fclose(dbptr);
