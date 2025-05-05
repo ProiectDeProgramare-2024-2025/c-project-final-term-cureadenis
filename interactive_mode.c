@@ -12,6 +12,18 @@ struct table *ptrtables;
 #define CLEAR_COMMAND "clear"
 #endif
 
+// scopul culorilor
+#define RED "\e[0;31m"    // data unei rezervari || optiune gresita/anulare
+#define BLUE "\e[0;34m"   // nr unei mese || optiune generica/alternativa
+#define GREEN "\e[0;32m"  // numele persoanei care rezerva || optiune corecta
+#define PURPLE "\e[0;35m" // nr de locuri la o masa
+#define WHITE "\e[0;37m"  // revenire text normal
+
+// nefolosite
+// #define BLACK "\e[0;30m"
+// #define YELLOW "\e[0;33m"
+// #define CYAN "\e[0;36m"
+
 void clear_screen()
 {
     system(CLEAR_COMMAND);
@@ -45,7 +57,6 @@ char user_option(int nr_optiuni)
 
         ales_deja = 1;
     } while (option < '0' || option > ('0' + nr_optiuni));
-    // printf("\e[1F\e[0J"); // sterge linia deasupra cursorului
     // 0 este optiunea universală de a merge înapoi
     return option;
 }
@@ -59,10 +70,11 @@ void show_reservations()
     for (int i = 0; i < nr_mase; i++)
     {
         if (ptrtables[i].is_reserved == 1)
-            printf("Masa %d rezervata de %s pe data de %.10s\n", ptrtables[i].id, ptrtables[i].reservation_name, ptrtables[i].reservation_date);
+            printf("Masa %s%d%s rezervata de %s%s%s pe data de %s%.10s%s\n",
+                   BLUE, ptrtables[i].id, WHITE, GREEN, ptrtables[i].reservation_name, WHITE, RED, ptrtables[i].reservation_date, WHITE);
     }
 
-    printf("\n0: Meniu principal\n");
+    printf("\n%s0%s: Meniu principal\n", RED, WHITE);
     char op = user_option(0);
     if (op == '0')
         main_menu();
@@ -78,7 +90,7 @@ void create_reservation()
     for (int i = 0; i < nr_mese; i++)
     {
         if (ptrtables[i].is_reserved == 0)
-            printf("Masa %d cu nr locuri %d\n", ptrtables[i].id, ptrtables[i].seats);
+            printf("Masa %s%d%s cu nr locuri %s%d%s\n", BLUE, ptrtables[i].id, WHITE, PURPLE, ptrtables[i].seats, WHITE);
     }
 
     int table;
@@ -93,19 +105,19 @@ void create_reservation()
         int c;
         while ((c = getchar()) != '\n' && c != EOF)
             ;
-        printf("Introduceti numele persoanei care rezerva (maxim 30 de caractere)\n");
+        printf("Introduceti %snumele persoanei%s care rezerva (maxim 30 de litere)\n", GREEN, WHITE);
         fgets(name, sizeof(name), stdin);
         name[strcspn(name, "\n")] = '\0';
         fflush(stdin);
-        printf("Introduceti data pentru rezervare (in format ZZ.LL.AAAA)\n");
+        printf("Introduceti %sdata%s pentru rezervare (in format %sZZ.LL.AAAA%s)\n", RED, WHITE, RED, WHITE);
         fgets(tmp, sizeof(tmp), stdin);
         tmp[strcspn(tmp, "\n")] = '\0';
         sscanf(tmp, "%d.%d.%d", &date.day, &date.month, &date.year);
 
-        printf("Rezervarea este pe data de %d.%d.%d, masa %d pentru %s. Este rezervarea corecta?\n", date.day, date.month, date.year, table, name);
-        printf("0: Anulare, meniu principal\n"
-               "1: Datele sunt corecte\n"
-               "2: Datele sunt incorecte\n");
+        printf("Rezervarea este pe data de %s%d.%d.%d%s, masa %s%d%s pentru %s%s%s. Este rezervarea corecta?\n",
+               RED, date.day, date.month, date.year, WHITE, BLUE, table, WHITE, GREEN, name, WHITE);
+        printf("%s0%s: Anulare, meniu principal\n%s1%s: Datele sunt corecte\n%s2%s: Datele sunt incorecte\n",
+               RED, WHITE, GREEN, WHITE, BLUE, WHITE);
         op = user_option(2);
         if (op == '0')
             main_menu();
@@ -130,6 +142,7 @@ void create_reservation()
     }
 
     save_tables(ptrtables, nr_mese);
+    main_menu();
 }
 
 void modify_reservations()
@@ -142,12 +155,12 @@ void modify_reservations()
     for (int i = 0; i < nr_mese; i++)
     {
         if (ptrtables[i].is_reserved == 1)
-            printf("Masa %d rezervata de %s pe data de %.10s\n", ptrtables[i].id, ptrtables[i].reservation_name, ptrtables[i].reservation_date);
+            printf("Masa %s%d%s rezervata de %s%s%s pe data de %s%.10s%s\n",
+                   BLUE, ptrtables[i].id, WHITE, GREEN, ptrtables[i].reservation_name, WHITE, RED, ptrtables[i].reservation_date, WHITE);
     }
 
-    printf("\n0: Meniu principal\n"
-           "1: Modificare rezervare\n"
-           "2: Stergere rezervare\n");
+    printf("\n%s0%s: Meniu principal\n%s1%s: Modificare rezervare\n%s2%s: Stergere rezervare\n",
+           RED, WHITE, BLUE, WHITE, BLUE, WHITE);
     char op = user_option(2);
     if (op == '0')
         main_menu();
@@ -158,15 +171,15 @@ void modify_reservations()
         char tmp[11];
         struct calendar_date date;
         int c;
-        printf("Introduceti numarul mesei de la rezervare: ");
+        printf("Introduceti %snumarul mesei%s de la rezervare: ", BLUE, WHITE);
         scanf("%d", &table);
         while ((c = getchar()) != '\n' && c != EOF)
             ;
-        printf("Introduceti numele persoanei care rezerva (maxim 30 de caractere)\n");
+        printf("Introduceti %snumele persoanei%s care rezerva (maxim 30 de litere)\n", GREEN, WHITE);
         fgets(name, sizeof(name), stdin);
         name[strcspn(name, "\n")] = '\0';
         fflush(stdin);
-        printf("Introduceti data pentru rezervare (in format ZZ.LL.AAAA)\n");
+        printf("Introduceti %sdata%s pentru rezervare (in format %sZZ.LL.AAAA%s)\n", RED, WHITE, RED, WHITE);
         fgets(tmp, sizeof(tmp), stdin);
 
         strncpy(ptrtables[table - 1].reservation_name, name, 30);
@@ -179,13 +192,14 @@ void modify_reservations()
     if (op == '2')
     {
         int table;
-        printf("Introduceti numarul mesei de la rezervare: ");
+        printf("Introduceti %snumarul mesei%s de la rezervare: ", BLUE, WHITE);
         scanf("%d", &table);
         ptrtables[table - 1].is_reserved = 0;
     }
 
     save_tables(ptrtables, nr_mese);
-    printf("0: Meniu principal\n");
+    clear_screen();
+    printf("%s0%s: Meniu principal\n", RED, WHITE);
     op = user_option(0);
     if (op == '0')
         main_menu();
@@ -200,10 +214,11 @@ void show_tables()
     int nr_mase = get_table_count();
     for (int i = 0; i < nr_mase; i++)
     {
-        printf("Masa %d cu nr locuri %d\n", ptrtables[i].id, ptrtables[i].seats);
+        printf("Masa %s%d%s cu nr locuri %s%d%s\n", BLUE, ptrtables[i].id, WHITE, PURPLE, ptrtables[i].seats, WHITE);
     }
 
-    printf("\n0: Meniu principal\n");
+    clear_screen();
+    printf("\n%s0%s: Meniu principal\n", RED, WHITE);
     char op = user_option(0);
     if (op == '0')
         main_menu();
@@ -218,12 +233,11 @@ void modify_tables()
     int nr_mese = get_table_count();
     for (int i = 0; i < nr_mese; i++)
     {
-        printf("Masa %d cu nr locuri %d\n", ptrtables[i].id, ptrtables[i].seats);
+        printf("Masa %s%d%s cu nr locuri %s%d%s\n", BLUE, ptrtables[i].id, WHITE, PURPLE, ptrtables[i].seats, WHITE);
     }
 
-    printf("\n0: Meniu principal\n"
-           "1: Modificare masa\n"
-           "2: Stergere masa\n");
+    printf("\n%s0%s: Meniu principal\n%s1%s: Modificare masa\n%s2%s: Stergere masa\n",
+           RED, WHITE, BLUE, WHITE, BLUE, WHITE);
     char op = user_option(2);
     if (op == '0')
         main_menu();
@@ -231,9 +245,9 @@ void modify_tables()
     {
         int table;
         int nr_locuri;
-        printf("Introduceti numarul mesei: ");
+        printf("Introduceti %snumarul mesei%s: ", BLUE, WHITE);
         scanf("%d", &table);
-        printf("Introduceti numarul de locuri a mesei: ");
+        printf("Introduceti %snumarul de locuri%s a mesei: ", PURPLE, WHITE);
         scanf("%d", &nr_locuri);
 
         ptrtables[table - 1].seats = nr_locuri;
@@ -241,12 +255,13 @@ void modify_tables()
     if (op == '2')
     {
         int table;
-        printf("Introduceti numarul mesei: ");
+        printf("Introduceti %snumarul mesei%s: ", BLUE, WHITE);
         scanf("%d", &table);
         ptrtables[table - 1].id = -1;
     }
     save_tables(ptrtables, nr_mese);
-    printf("\n0: Meniu principal\n");
+    // clear_screen();
+    printf("\n%s0%s: Meniu principal\n", RED, WHITE);
     op = user_option(0);
     if (op == '0')
         main_menu();
@@ -257,10 +272,8 @@ void search_tables()
     clear_screen();
     printf("--- Cautarea meselor ---\n");
 
-    printf("0: Meniu principal\n"
-           "1: Cautare mese dupa numar locuri\n"
-           "2: Cautare mese libere\n"
-           "3: Cautare mese ocupate\n");
+    printf("%s0%s: Meniu principal\n%s1%s: Cautare mese dupa %snumar locuri%s\n%s2%s: Cautare mese %slibere%s\n%s3%s: Cautare mese %socupate%s\n",
+           RED, WHITE, BLUE, WHITE, PURPLE, WHITE, BLUE, WHITE, GREEN, WHITE, BLUE, WHITE, BLUE, WHITE);
 
     char op = user_option(3);
     if (op == '0')
@@ -268,14 +281,14 @@ void search_tables()
     if (op == '1')
     {
         int nr_locuri;
-        printf("Introduceti numarul de locuri: ");
+        printf("Introduceti %snumarul de locuri%s: ", PURPLE, WHITE);
         scanf("%d", &nr_locuri);
 
         int nr_mese = get_table_count();
         for (int i = 0; i < nr_mese; i++)
         {
             if (ptrtables[i].seats == nr_locuri)
-                printf("Masa %d\n", ptrtables[i].id);
+                printf("Masa %s%d%s\n", BLUE, ptrtables[i].id, WHITE);
         }
     }
     if (op == '2')
@@ -285,7 +298,7 @@ void search_tables()
         for (int i = 0; i < nr_mese; i++)
         {
             if (ptrtables[i].is_reserved == 0)
-                printf("Masa %d cu %d locuri\n", ptrtables[i].id, ptrtables[i].seats);
+                printf("Masa %s%d%s cu %s%d%s locuri\n", BLUE, ptrtables[i].id, WHITE, PURPLE, ptrtables[i].seats, WHITE);
         }
     }
     if (op == '3')
@@ -295,11 +308,11 @@ void search_tables()
         for (int i = 0; i < nr_mese; i++)
         {
             if (ptrtables[i].is_reserved == 1)
-                printf("Masa %d rezervata de %s pe %.10s\n", ptrtables[i].id, ptrtables[i].reservation_name, ptrtables[i].reservation_date);
+                printf("Masa %s%d%s rezervata de %s%s%s pe %s%.10s%s\n", BLUE, ptrtables[i].id, WHITE, GREEN, ptrtables[i].reservation_name, WHITE, RED, ptrtables[i].reservation_date, WHITE);
         }
     }
 
-    printf("\n0: Meniu principal\n");
+    printf("\n%s0%s: Meniu principal\n", RED, WHITE);
     op = user_option(0);
     if (op == '0')
         main_menu();
@@ -312,14 +325,8 @@ void main_menu()
     populate_memory(ptrtables);
 
     clear_screen();
-    printf("--- Meniu Principal --- \n"
-           "0: Iesire din program\n"
-           "1: Creare rezervare\n"
-           "2: Vizualizare rezervari\n"
-           "3: Modificare rezervari\n"
-           "4: Vizualizare mese\n"
-           "5: Modificare mese\n"
-           "6: Cautare masa\n");
+    printf("--- Meniu Principal --- \n%s0%s: Iesire din program\n%s1%s: Creare rezervare\n%s2%s: Vizualizare rezervari\n%s3%s: Modificare rezervari\n%s4%s: Vizualizare mese\n%s5%s: Modificare mese\n%s6%s: Cautare masa\n",
+           RED, WHITE, BLUE, WHITE, BLUE, WHITE, BLUE, WHITE, BLUE, WHITE, BLUE, WHITE, BLUE, WHITE);
 
     char op = user_option(6);
     if (op == '0')
